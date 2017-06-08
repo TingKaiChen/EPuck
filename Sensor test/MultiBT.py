@@ -3,6 +3,7 @@ from ePuckUtil import *
 import sys
 import re
 import curses
+import time
 
 
 
@@ -37,13 +38,33 @@ def main(macs,robot_ids):
 		curses.noecho()
 		curses.cbreak()
 
+		# Time variables for the data rate
+		timestart = time.time()
+		timestep = timestart
+		iter = 0
+
 		while True:
+			iter += 1
 			sensorDatas=[]
 			for robot in robotlist:
 				robot.step()
 				prox_sensors = robot.get_proximity()
 				sensorDatas.append(prox_sensors)
-			samelinePrint(stdscr,robot_ids,sensorDatas)
+			# Print sensor data
+			samelinePrint(stdscr,sensorDatas,botIDs=robot_ids)
+			# Print data rate
+			timeend = time.time()
+			stepAvg = 5/(timeend-timestep)
+			allAvg = iter/(timeend-timestart)
+			sAvgtext = '{:>10.2f}'.format(stepAvg)
+			aAvgtext = '{:>10.2f}'.format(allAvg)
+			sAvgtext += ' (iter/sec, for last 5 iterations)'
+			aAvgtext += ' (iter/sec, for all iterations)'
+			samelinePrint(stdscr,aAvgtext,setlineRow=len(sensorDatas)+1)
+			if iter%5 == 0:
+				samelinePrint(stdscr,sAvgtext,setlineRow=len(sensorDatas))
+				timestep = timeend
+
 	except KeyboardInterrupt:
 		curses.echo()
 		curses.nocbreak()
@@ -51,7 +72,8 @@ def main(macs,robot_ids):
 
 		print '\n'
 		log('Stoping the robot. Bye!')
-		robot.close()
+		for robot in robotlist:
+			robot.close()
 		sys.exit()
 	except Exception, e:
 		print e

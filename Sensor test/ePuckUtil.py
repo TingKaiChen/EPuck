@@ -26,16 +26,22 @@ def error(text):
 
 	print(''.join((red, '[Error] ', off, str(text))))
 
-def samelinePrint(stdscr,botIDs,text):
+def samelinePrint(stdscr,text,botIDs = [],setlineRow = False):
 	# text = str(text)
 	# sys.stdout.write("\r100%\033[K\r")
 	# sys.stdout.write(text)
 	# sys.stdout.flush()
+
+	if setlineRow != False:
+		stdscr.addstr(setlineRow, 0, text)	
+		stdscr.refresh()
+		return
 	
 	for i in xrange(len(text)):
 		line = '({0[0]:>5},{0[1]:>5},{0[2]:>5},{0[3]:>5},\
 {0[4]:>5},{0[5]:>5},{0[6]:>5},{0[7]:>5})'.format(text[i])
 		line = 'e-Puck '+botIDs[i]+': '+line
+
 		stdscr.addstr(i, 0, line)
 	stdscr.refresh()
 
