@@ -6,7 +6,7 @@ import curses
 
 
 
-def main(macs):
+def main(macs,robot_ids):
 	log('Connecting with the ePuck')
 	try:
 		# First, create an ePuck object.
@@ -43,7 +43,7 @@ def main(macs):
 				robot.step()
 				prox_sensors = robot.get_proximity()
 				sensorDatas.append(prox_sensors)
-			samelinePrint(stdscr,sensorDatas)
+			samelinePrint(stdscr,robot_ids,sensorDatas)
 	except KeyboardInterrupt:
 		curses.echo()
 		curses.nocbreak()
@@ -60,20 +60,27 @@ def main(macs):
 
 if __name__ == '__main__':
 	X = '([a-fA-F0-9]{2}[:|\-]?){6}'
-	if len(sys.argv) < 3:
-		error("Usage: " + sys.argv[0] + "2 ePuck_ID | MAC Address")
+	if len(sys.argv) < 1:
+		error("Usage: " + sys.argv[0] + "Multiple ePuck_ID | MAC Address | -all")
 		sys.exit()
 	robot_ids = sys.argv[1:]
 
 	macs=[]
-	for robot_id in robot_ids:
-		if epucks.has_key(robot_id):
-			macs.append(epucks[robot_id])
-		elif re.match(X,robot_id) != 0 and len(robot_id) != 4:
-			macs.append(epucks[robot_id])
-		else:
-			error('Incorrect Mac direction or ID: '+robot_id)
-			quit()
+	all_flag = False
+	if '-all' in robot_ids:
+		# Connect all 6 e-Puck robots
+		all_flag = True
+		macs = epucks.values()
+		robot_ids = epucks.keys()
+	else:
+		for robot_id in robot_ids:
+			if epucks.has_key(robot_id):
+				macs.append(epucks[robot_id])
+			elif re.match(X,robot_id) != 0 and len(robot_id) != 4:
+				macs.append(epucks[robot_id])
+			else:
+				error('Incorrect Mac direction or ID: '+robot_id)
+				quit()
 
-	main(macs)
+	main(macs,robot_ids)
 

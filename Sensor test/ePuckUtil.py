@@ -1,12 +1,16 @@
 import sys
+import collections
 
 # You can use this dictionary to asociate an ePuck ID with its MAC Address
 epucks = {
-	'1797' : '10:00:E8:6C:A2:B6',
-	'1903' : '10:00:E8:6C:A1:C7',
+	'3419' : '10:00:E8:D7:03:D0',	
+	'3428' : '10:00:E8:D7:03:D4',	
 	'3624' : '10:00:E8:D7:03:C2',
 	'3672' : '10:00:E8:D7:03:C8',	
+	'3673' : '10:00:E8:D7:03:AF',	
+	'3674' : '10:00:E8:D7:03:B1',	
 }
+epucks = collections.OrderedDict(sorted(epucks.items()))
 
 def log(text):
 	"""	Show @text in standart output with colors """
@@ -22,18 +26,17 @@ def error(text):
 
 	print(''.join((red, '[Error] ', off, str(text))))
 
-def samelinePrint(stdscr,text):
+def samelinePrint(stdscr,botIDs,text):
 	# text = str(text)
 	# sys.stdout.write("\r100%\033[K\r")
 	# sys.stdout.write(text)
 	# sys.stdout.flush()
 	
-	line0 = '({0[0]:>5},{0[1]:>5},{0[2]:>5},{0[3]:>5},\
-{0[4]:>5},{0[5]:>5},{0[6]:>5},{0[7]:>5})'.format(text[0])
-	line1 = '({0[0]:>5},{0[1]:>5},{0[2]:>5},{0[3]:>5},\
-{0[4]:>5},{0[5]:>5},{0[6]:>5},{0[7]:>5})'.format(text[1])
-	stdscr.addstr(0, 0, line0)
-	stdscr.addstr(1, 0, line1)
+	for i in xrange(len(text)):
+		line = '({0[0]:>5},{0[1]:>5},{0[2]:>5},{0[3]:>5},\
+{0[4]:>5},{0[5]:>5},{0[6]:>5},{0[7]:>5})'.format(text[i])
+		line = 'e-Puck '+botIDs[i]+': '+line
+		stdscr.addstr(i, 0, line)
 	stdscr.refresh()
 
 	
