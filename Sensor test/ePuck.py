@@ -57,6 +57,8 @@ import time			# Used for image capture process
 import struct 		# Used for Big-Endian messages
 # import Image  		# Used for the pictures of the camera
 from PIL import Image
+import cv2
+import numpy as np
 
 __package__ = "ePuck"
 __docformat__ = "restructuredtext"  
@@ -78,7 +80,7 @@ DIC_MSG = {
 	"\n": 23, 	# Menu
 	"\x0c": 2,  # Welcome
 	"k": 3,   	# Calibration
-	"R": 2	  	# Reset
+	"R": 3	  	# Reset
 }
 
 # You have to use the keys of this dictionary for indicate on "enable" function 
@@ -250,10 +252,9 @@ class ePuck():
 				
 			# Create the PIL Image
 			image = Image.frombuffer("RGB", (self._cam_width, self._cam_height), 
-									 img, "raw", 
-									 "BGR;16", 0, 1)
+				img, "raw", "BGR;16", 0, 1)
 									 
-			image = image.rotate(180)
+			# image = image.rotate(180)
 			self._pil_image = image
 			
 		except Exception, e:
@@ -313,6 +314,8 @@ class ePuck():
 					self._debug('Unknown ACK reply from ePcuk: ' + reply)
 
 			self._actuators_to_write.remove(m)
+		if self._sensors_to_read == []:
+			sys.exit()
 		return
 			
 	def _read_sensors(self):
@@ -530,9 +533,16 @@ class ePuck():
 			try:
 				# Receive the reply. As we want to receive a line, we have to insist
 				reply = ''
+				correct_msg = 'Selector pos 3\r\n\x0c\x07\
+WELCOME to the SerCom protocol on e-Puck\r\n\
+the EPFL education robot type "H" for help\r\n'
 				while reply.count('\n') < lines:
+				# while reply != correct_msg:
 					reply += self._recv()
 					if message[0] == 'R':
+						# print '==lines=',lines,'===','count:',reply.count('\n'),'==='
+						# print repr(reply)
+						# print '===',correct_msg==reply,'===',reply.count('\n') < lines,'=='
 						# For some reason that I don't understand, if you send a reset
 						# command 'R', sometimes you recive 1 or 2 lines of 'z,Command not found\r\n'
 						# Therefor I have to remove it from the expected message: The Hello message
@@ -544,7 +554,25 @@ class ePuck():
 				tries += 1
 				self._debug('Communication timeout, retrying')
 		
+	def show_image(self, window = "Image"):
+		"""
+		Save image from ePuck's camera to disk
 		
+		:param name: Image name, ePuck.jpg as default
+		:type name: String
+		
+		:return: Operation result
+		:rtype:  Boolean
+		"""
+
+		open_cv_image = np.array(self._pil_image) 
+		open_cv_image = cv2.resize(open_cv_image, (0,0), fx=10, fy=10) 
+		# Convert RGB to BGR 
+		open_cv_image = open_cv_image[:, :, ::-1].copy() 
+		
+		cv2.imshow(window, open_cv_image)
+		cv2.waitKey(1)	
+		# print 'hi'
 		
 	def save_image(self, name = 'ePuck.jpg'):
 		"""
@@ -980,7 +1008,7 @@ class ePuck():
 
 		
 		# Get an image in 1 FPS
-		if self._cam_enable and time.time() - self.timestamp > 1:
+		if self._cam_enable: # and time.time() - self.timestamp > 1:
 			self._read_image()
 			self.timestamp = time.time()
 

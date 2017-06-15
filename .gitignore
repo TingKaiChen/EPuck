@@ -6,4 +6,4 @@ epuck-python/dependencies
 epuck-python/python2.6
 .vscode/
 *.pyc
-*test.*
+*/test.py
