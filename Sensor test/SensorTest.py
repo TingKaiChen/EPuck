@@ -2,10 +2,12 @@ from ePuck import ePuck
 from ePuckUtil import *
 import sys
 import re
+import curses
+import time
 
 
 
-def main(mac):
+def main(macs,robot_ids):
 
 	log('Connecting with the ePuck')
 	try:
@@ -13,14 +15,16 @@ def main(mac):
 		# If you want debug information:
 		#~ robot = ePuck(mac, debug = True)
 		# else:
-		robot = ePuck(mac,debug=False)
+		robotlist = []
 
-		# Second, connect to it
-		robot.connect()
-
-		# You can enable various sensors at the same time. Take a look to
-		# to DIC_SENSORS for know the name of the sensors
-		robot.enable('proximity')
+		for mac in macs:
+			robot = ePuck(mac,debug=False)
+			# Second, connect to it
+			robot.connect()
+			# You can enable various sensors at the same time. Take a look to
+			# to DIC_SENSORS for know the name of the sensors
+			robot.enable('floor')
+			robotlist.append(robot)
 
 		log('Conection complete. CTRL+C to stop')
 		log('Library version: ' + robot.version)
@@ -30,13 +34,36 @@ def main(mac):
 		sys.exit(1)
 
 	try:
+		# Multiple lines printing setting
+		# stdscr = curses.initscr()
+		# curses.noecho()
+		# curses.cbreak()
+
+		# Time variables for the data rate
+		timestart = time.time()
+		timestep = timestart
+		iter = 0
+
+
 		while True:
-			robot.step()
-			prox_sensors = robot.get_proximity()
-			samelinePrint(str(prox_sensors))
+			iter += 1
+			sensorDatas=[]
+			for robot in robotlist:
+				robot.step()
+				prox_sensors = robot.get_floor_sensors()
+				sensorDatas.append(prox_sensors)
+			# Print sensor data
+			print sensorDatas
+			# samelinePrint(stdscr,sensorDatas,botIDs=robot_ids)
 	except KeyboardInterrupt:
+		# curses.echo()
+		# curses.nocbreak()
+		# curses.endwin()
+
+		print '\n'
 		log('Stoping the robot. Bye!')
-		robot.close()
+		for robot in robotlist:
+			robot.close()
 		sys.exit()
 	except Exception, e:
 		print e
@@ -48,14 +75,23 @@ if __name__ == '__main__':
 	if len(sys.argv) < 2:
 		error("Usage: " + sys.argv[0] + " ePuck_ID | MAC Address")
 		sys.exit()
-	robot_id = sys.argv[1]
+	robot_ids = sys.argv[1:]
 
-	if epucks.has_key(robot_id):
-		main(epucks[robot_id])
-
-	elif re.match(X, robot_id) != 0:
-		main(robot_id)
-
+	macs=[]
+	all_flag = False
+	if '-all' in robot_ids:
+		# Connect all 6 e-Puck robots
+		all_flag = True
+		macs = epucks.values()
+		robot_ids = epucks.keys()
 	else:
-		error('You have to indicate the MAC direction of the robot')
+		for robot_id in robot_ids:
+			if epucks.has_key(robot_id):
+				macs.append(epucks[robot_id])
+			elif re.match(X,robot_id) != 0 and len(robot_id) != 4:
+				macs.append(epucks[robot_id])
+			else:
+				error('Incorrect Mac direction or ID: '+robot_id)
+				quit()
 
+	main(macs,robot_ids)

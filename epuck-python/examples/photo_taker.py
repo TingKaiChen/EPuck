@@ -33,7 +33,8 @@ import time
 # You can use this dictionary to asociate an ePuck ID with its MAC Address
 epucks = {
 	'1797': '10:00:E8:6C:A2:B6',
-	'1903': '10:00:E8:6C:A1:C7'
+	'1903': '10:00:E8:6C:A1:C7',
+	'3673': '10:00:E8:D7:03:AF'
 }
 
 
