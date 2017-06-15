@@ -29,13 +29,15 @@ from ePuck import ePuck
 import sys
 import re
 import time
+import cv2
 
 # You can use this dictionary to asociate an ePuck ID with its MAC Address
 epucks = {
-	'1797': '10:00:E8:6C:A2:B6',
-	'1903': '10:00:E8:6C:A1:C7'
+	'1797' : '10:00:E8:6C:A2:B6',
+	'1903' : '10:00:E8:6C:A1:C7',
+	'3624' : '10:00:E8:D7:03:C2',
+	'3672' : '10:00:E8:D7:03:C8',	
 }
-
 
 def log(text):
 	"""	Show @text in standart output with colors """
@@ -58,6 +60,9 @@ def main(mac):
 	fs_speed = 0.6
 	threshold = 1000
 
+	window_name= 'image'
+	cv2.namedWindow(window_name, 1)
+
 	print('Connecting with the ePuck')
 	try:
 		# First, create an ePuck object.
@@ -71,7 +76,7 @@ def main(mac):
 
 		# You can enable various sensors at the same time. Take a look to
 		# to DIC_SENSORS for know the name of the sensors
-		robot.enable('camera', 'motor_position')
+		robot.enable('camera')
 
 		# We have to set the camera parameters
 		robot.set_camera_parameters('RGB_365', 40, 40, 8)
@@ -85,6 +90,7 @@ def main(mac):
 
 	try:
 		counter = 0
+		st = time.time()
 		while True:
 			# Important: when you execute 'step()', al sensors
 			# and actuators are updated. All changes you do on the ePuck
@@ -95,29 +101,33 @@ def main(mac):
 
 			if image != None:
 				# Do something with the image
-				robot.save_image('ePuck-' + str(counter) + '.png')
+				robot.show_image(window_name)
 				counter += 1
-			#else:
-			#	log('No image received!')
+				et = time.time()
+				log("FPS : " +  str(float(counter)/(et-st)))
+				# start_time = time.time()
+				# log('Image received!  ' + str(counter))
+			# else:
+			# 	log('No image received!')
 
-			# Set the motors speed and position
-			robot.set_motors_speed(100, -100)
-			robot.set_motor_position(0, 0)
+			# # Set the motors speed and position
+			# robot.set_motors_speed(100, -100)
+			# robot.set_motor_position(0, 0)
 
-			# Make a 'step()' and the robot will move
-			robot.step()
+			# # Make a 'step()' and the robot will move
+			# robot.step()
 
-			while robot.get_motor_position()[0] < 270:
-				# Keep turning on itself
-				robot.step()
-				#log('Left motor position: ' + str(robot.get_motor_position()[0]))
+			# while robot.get_motor_position()[0] < 270:
+			# 	# Keep turning on itself
+			# 	robot.step()
+			# 	#log('Left motor position: ' + str(robot.get_motor_position()[0]))
 
-			# Stop the robot (don't forget the 'step()')
-			robot.stop()
-			robot.step()
+			# # Stop the robot (don't forget the 'step()')
+			# robot.stop()
+			# robot.step()
 
-			# Sleep, otherwise we will not see the stop
-			time.sleep(1)
+			# # Sleep, otherwise we will not see the stop
+			# time.sleep(1)
 
 	except KeyboardInterrupt:
 		log('Stoping the robot. Bye!')
