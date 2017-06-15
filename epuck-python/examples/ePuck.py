@@ -57,6 +57,8 @@ import time			# Used for image capture process
 import struct 		# Used for Big-Endian messages
 # import Image  		# Used for the pictures of the camera
 from PIL import Image
+import cv2
+import numpy as np
 
 __package__ = "ePuck"
 __docformat__ = "restructuredtext"  
@@ -253,7 +255,7 @@ class ePuck():
 									 img, "raw", 
 									 "BGR;16", 0, 1)
 									 
-			image = image.rotate(180)
+			# image = image.rotate(180)
 			self._pil_image = image
 			
 		except Exception, e:
@@ -544,7 +546,25 @@ class ePuck():
 				tries += 1
 				self._debug('Communication timeout, retrying')
 		
+	def show_image(self, window = "Image"):
+		"""
+		Save image from ePuck's camera to disk
 		
+		:param name: Image name, ePuck.jpg as default
+		:type name: String
+		
+		:return: Operation result
+		:rtype:  Boolean
+		"""
+
+		open_cv_image = np.array(self._pil_image) 
+		open_cv_image = cv2.resize(open_cv_image, (0,0), fx=15, fy=15) 
+		# Convert RGB to BGR 
+		open_cv_image = open_cv_image[:, :, ::-1].copy() 
+		
+		cv2.imshow(window, open_cv_image)
+		cv2.waitKey(1)
+
 		
 	def save_image(self, name = 'ePuck.jpg'):
 		"""
@@ -980,7 +1000,7 @@ class ePuck():
 
 		
 		# Get an image in 1 FPS
-		if self._cam_enable and time.time() - self.timestamp > 1:
+		if self._cam_enable :#and time.time() - self.timestamp > 1:
 			self._read_image()
 			self.timestamp = time.time()
 
