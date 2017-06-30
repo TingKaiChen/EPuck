@@ -539,10 +539,12 @@ the EPFL education robot type "H" for help\r\n'
 				while reply.count('\n') < lines:
 				# while reply != correct_msg:
 					reply += self._recv()
+					print 'reply_len: ',len(reply)
+					print '==lines=',lines,'===','count:',reply.count('\n'),'==='
+					print repr(reply)
+					print '===',correct_msg==reply,'===',reply.count('\n') < lines,'=='
 					if message[0] == 'R':
-						# print '==lines=',lines,'===','count:',reply.count('\n'),'==='
-						# print repr(reply)
-						# print '===',correct_msg==reply,'===',reply.count('\n') < lines,'=='
+						
 						# For some reason that I don't understand, if you send a reset
 						# command 'R', sometimes you recive 1 or 2 lines of 'z,Command not found\r\n'
 						# Therefor I have to remove it from the expected message: The Hello message
